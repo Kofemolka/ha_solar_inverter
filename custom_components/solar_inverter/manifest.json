@@ -1,0 +1,13 @@
+{
+  "domain": "solar_inverter",
+  "name": "Solar Inverter",
+  "version": "0.1.0",
+  "config_flow": true,
+  "codeowners": ["@Kofemolka"],
+  "documentation" : "none",
+  "iot_class": "local_polling",
+  "loggers": [
+    "custom_components.solar_inverter"
+  ],
+  "requirements": []
+}

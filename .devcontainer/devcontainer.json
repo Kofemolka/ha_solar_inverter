@@ -1,0 +1,43 @@
+{
+  "name": "HA + your integration",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": [
+    "--network=host",
+    "--privileged",
+    // Uncomment if you want to test with real hardware now:
+    // "--device=/dev/hidraw0:/dev/hidraw0"
+    // You can repeat for more devices.
+    "--env", "PYTHONUNBUFFERED=1"
+  ],
+  "containerEnv": {
+    "PYTHONASYNCIODEBUG": "1"
+  },
+  "mounts": [
+    // Mount your repo's HA config folder into /config (HA's home)
+    "source=${localWorkspaceFolder}/.devcontainer/config,target=/config,type=bind,consistency=cached",
+    // Mount your integration into HA's custom_components
+    "source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind,consistency=cached"
+  ],
+  "appPort": ["8123:8123", "5683:5683/udp"],
+  "remoteUser": "vscode",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.debugpy",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.analysis.typeCheckingMode": "basic",
+        "python.testing.pytestEnabled": true
+      }
+    }
+  },
+  "postCreateCommand": "pip install -U pip && pip install --no-cache-dir homeassistant && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi"
+}

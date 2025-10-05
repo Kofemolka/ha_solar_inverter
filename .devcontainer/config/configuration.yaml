@@ -1,0 +1,14 @@
+homeassistant:
+  name: Dev HA
+  unit_system: metric
+  time_zone: Europe/Kyiv
+
+solar_interver:
+  device: fake
+  scan_interval: 5
+  queries: [qpigs, qpiri, qpiws]
+
+logger:
+  default: info
+  logs:
+    custom_components.solar_inverter: debug
