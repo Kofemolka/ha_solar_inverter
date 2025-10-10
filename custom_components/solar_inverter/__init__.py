@@ -66,8 +66,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         update_interval=timedelta(seconds=scan_seconds),
     )
 
-    await coordinator.async_config_entry_first_refresh()
-
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN] = {
         "hub": hub,

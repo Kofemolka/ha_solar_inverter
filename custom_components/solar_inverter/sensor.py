@@ -4,7 +4,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.const import UnitOfElectricPotential, UnitOfPower, UnitOfElectricCurrent, UnitOfFrequency
+from homeassistant.const import UnitOfElectricPotential, UnitOfPower, UnitOfElectricCurrent, UnitOfFrequency, UnitOfApparentPower
 from .const import DOMAIN
 
 
@@ -14,7 +14,7 @@ SENSOR_MAP = {
     "grid_freq": ("Grid Frequency", UnitOfFrequency.HERTZ),
     "ac_output_voltage": ("AC Output Voltage", UnitOfElectricPotential.VOLT),
     "ac_output_freq": ("AC Output Frequency", UnitOfFrequency.HERTZ),
-    "ac_output_va": ("AC Output Apparent Power", UnitOfPower.VOLT_AMPERE),
+    "ac_output_va": ("AC Output Apparent Power", UnitOfApparentPower.VOLT_AMPERE),
     "ac_output_w": ("AC Output Active Power", UnitOfPower.WATT),
     "ac_output_percent": ("AC Output Load %", "%"),
     "bus_voltage": ("Bus Voltage", UnitOfElectricPotential.VOLT),
@@ -44,9 +44,8 @@ async def async_setup_platform(hass: HomeAssistant, config: ConfigType, async_ad
 
 class _Base(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator, name: str):
-    super().__init__(coordinator)
-    self._attr_name = name
-
+        super().__init__(coordinator)
+        self._attr_name = name
 
     @property
     def available(self) -> bool:
@@ -64,7 +63,7 @@ class HidInverterNumberSensor(_Base):
     @property
     def native_value(self):
         d = self.coordinator.data or {}
-        qpigs = d.get("qpigs", {})
+        qpigs = d.get("QPIGS", {})
         return qpigs.get(self._field)
 
 
