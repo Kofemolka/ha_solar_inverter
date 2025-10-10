@@ -6,7 +6,7 @@ homeassistant:
 solar_inverter:
   device: fake
   scan_interval: 5
-  queries: [qpigs, qpiri, qpiws]
+  queries: [QPIGS, QPIRI, QPIWS]
 
 logger:
   default: info
