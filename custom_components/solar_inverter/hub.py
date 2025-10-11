@@ -13,7 +13,7 @@ def _strip_frame(resp: bytes) -> str:
 
 
 class InverterHub:
-    def __init__(self, hass, path: str, name: str, queries):
+    def __init__(self, hass, path: str, name: str, queries : list):
         self.hass = hass
         self.name = name
         
@@ -22,7 +22,7 @@ class InverterHub:
         else:
             self._dev = hidraw.HidrawInverter(path)
         
-        self._queries = list(queries)
+        self._queries = queries
         self._last = {}
 
     async def async_init(self):
@@ -30,30 +30,24 @@ class InverterHub:
 
     async def async_poll_all(self) -> Dict[str, dict]:
         data: Dict[str, dict] = {}
-        for q in self._queries:
+        for query in self._queries:
             try:
-                raw = await self._dev.query(q.upper())
-                parsed = self._parse(q, raw)
-                data[q] = parsed
+                raw = await self._dev.query(query.cmd())
+                parsed = self._parse(query, raw)
+                data |= parsed
             except Exception as e:
-                _LOGGER.warning("Query %s failed: %s", q, e)
-        
-        self._last = data
+                _LOGGER.warning("Query %s failed: %s", query.cmd(), e)
+
         return data
     
-    def _parse(self, q: str, raw: bytes) -> dict:
+    def _parse(self, query, raw: bytes) -> dict:
         body = _strip_frame(raw)
         if body == "NAK":
             return {"ok": False}
         
         parts = body.split()
         
-        for query in QUERIES:
-            res = query.parse(q, parts)
-            if res:
-                return res
-            
-        return {"raw": body, "ok": True}        
+        return query.parse(parts)       
         
         if q == "qpiri":
             # Rated info (subset)

@@ -22,6 +22,7 @@ from .const import (
     SUPPORTED_QUERIES,
 )
 from .hub import InverterHub
+from .queries import get_user_queries
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,10 +53,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     conf = config[DOMAIN]
     device = conf[CONF_DEVICE]
     scan_seconds = conf[CONF_SCAN_INTERVAL]
-    queries = conf[CONF_QUERIES]
+    user_queries = conf[CONF_QUERIES]
     name = conf[CONF_NAME]
 
-    hub = InverterHub(hass, device, name=name, queries=queries)
+    selected_queries = get_user_queries(user_queries)
+  
+    hub = InverterHub(hass, device, name=name, queries=selected_queries)
     await hub.async_init()
 
     coordinator = DataUpdateCoordinator(
@@ -71,7 +74,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         "hub": hub,
         "coordinator": coordinator,
         "name": name,
-        "queries": queries,
+        "queries": selected_queries,
     }
 
     for platform in PLATFORMS:

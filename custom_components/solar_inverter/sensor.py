@@ -4,77 +4,66 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.const import UnitOfElectricPotential, UnitOfPower, UnitOfElectricCurrent, UnitOfFrequency, UnitOfApparentPower
-from .const import DOMAIN
+from .const import DOMAIN, CONF_QUERIES
+from .queries import get_user_queries, metric
 
+# SENSOR_MAP = {
+#     # key -> (name, unit)
+#     "grid_voltage": ("Grid Voltage", UnitOfElectricPotential.VOLT),
+#     "grid_freq": ("Grid Frequency", UnitOfFrequency.HERTZ),
+#     "ac_output_voltage": ("AC Output Voltage", UnitOfElectricPotential.VOLT),
+#     "ac_output_freq": ("AC Output Frequency", UnitOfFrequency.HERTZ),
+#     "ac_output_va": ("AC Output Apparent Power", UnitOfApparentPower.VOLT_AMPERE),
+#     "ac_output_w": ("AC Output Active Power", UnitOfPower.WATT),
+#     "ac_output_percent": ("AC Output Load %", "%"),
+#     "bus_voltage": ("Bus Voltage", UnitOfElectricPotential.VOLT),
+#     "battery_voltage": ("Battery Voltage", UnitOfElectricPotential.VOLT),
+#     "battery_charge_current": ("Battery Charge Current", UnitOfElectricCurrent.AMPERE),
+# }
 
-SENSOR_MAP = {
-    # key -> (name, unit)
-    "grid_voltage": ("Grid Voltage", UnitOfElectricPotential.VOLT),
-    "grid_freq": ("Grid Frequency", UnitOfFrequency.HERTZ),
-    "ac_output_voltage": ("AC Output Voltage", UnitOfElectricPotential.VOLT),
-    "ac_output_freq": ("AC Output Frequency", UnitOfFrequency.HERTZ),
-    "ac_output_va": ("AC Output Apparent Power", UnitOfApparentPower.VOLT_AMPERE),
-    "ac_output_w": ("AC Output Active Power", UnitOfPower.WATT),
-    "ac_output_percent": ("AC Output Load %", "%"),
-    "bus_voltage": ("Bus Voltage", UnitOfElectricPotential.VOLT),
-    "battery_voltage": ("Battery Voltage", UnitOfElectricPotential.VOLT),
-    "battery_charge_current": ("Battery Charge Current", UnitOfElectricCurrent.AMPERE),
-}
-
-async def async_setup_platform(hass: HomeAssistant, config: ConfigType, async_add_entities, discovery_info=None):
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, add: AddEntitiesCallback
+) -> None:
     data = hass.data[DOMAIN]
-    name = data["name"]
     coordinator = data["coordinator"]
-
+    user_queries = data[CONF_QUERIES]
 
     entities = []
-    # QPIGS-derived metrics
-    for key, (friendly, unit) in SENSOR_MAP.items():
-        entities.append(HidInverterNumberSensor(coordinator, f"{name} {friendly}", key))
+   
+    for q in user_queries:
+        for metric in q.metrics():
+            entities.append(HidInverterNumberSensor(coordinator, entry.entry_id, metric.name, metric))
 
-
-    # Raw text helpers for debug / development
-    for q in data["queries"]:
-        entities.append(HidInverterRawSensor(coordinator, f"{name} {q.upper()} Raw", q))
-
-
-    async_add_entities(entities)
+    add(entities)
 
 
 class _Base(CoordinatorEntity, SensorEntity):
-    def __init__(self, coordinator, name: str):
+    def __init__(self, coordinator, entry_id : str, name: str, meta : metric.Metric):
         super().__init__(coordinator)
+
+        self._meta = meta
+
+        self._attr_unique_id = f"{entry_id}-{meta.uuid}"
         self._attr_name = name
+
+        self._attr_device_class = meta.dc
+        self._attr_native_unit_of_measurement = meta.uom
+        self._attr_state_class = meta.sc
 
     @property
     def available(self) -> bool:
         d = self.coordinator.data or {}
-        # available if any query succeeded
-        return any(v.get("ok") for v in d.values())
+        return d.get(self._meta.uuid) is not None
 
 
 class HidInverterNumberSensor(_Base):
-    def __init__(self, coordinator, name: str, field: str):
-        super().__init__(coordinator, name)
-        self._field = field
-
+    def __init__(self, coordinator, entry_id : str, name: str, meta : metric.Metric):
+        super().__init__(coordinator, entry_id, name, meta)
 
     @property
     def native_value(self):
-        d = self.coordinator.data or {}
-        qpigs = d.get("QPIGS", {})
-        return qpigs.get(self._field)
-
-
-class HidInverterRawSensor(_Base):
-    def __init__(self, coordinator, name: str, query_key: str):
-        super().__init__(coordinator, name)
-        self._q = query_key
-
-
-    @property
-    def native_value(self):
-        d = self.coordinator.data or {}
-        qd = d.get(self._q, {})
-        return qd.get("raw")
+        d = self.coordinator.data or {}        
+        return d.get(self._meta.uuid)
