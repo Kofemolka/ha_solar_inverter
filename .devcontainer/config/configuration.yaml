@@ -6,7 +6,8 @@ homeassistant:
 solar_inverter:
   name: Master Power
   # device: fake
-  device: /tmp/inverter
+  # device: /tmp/inverter
+  device: /dev/hidraw0
   scan_interval: 5
   queries: [QPIGS, QPIRI, QPIWS, QMOD]
 
