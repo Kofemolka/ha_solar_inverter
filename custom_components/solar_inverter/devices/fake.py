@@ -2,9 +2,6 @@ class FakeDevice:
     def __init__(self):
         pass
 
-    async def open(self):
-        pass
-
     async def query(self, cmd: str) -> bytes:
         stubs = {
             "QPIGS" : "(218.6 49.9 230.0 49.9 0368 0265 007 396 53.10 013 021 0046 0013 226.4 00.00 00000 00010010 00 00 01049 010\r",

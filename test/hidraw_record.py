@@ -31,16 +31,6 @@ def calc_crc(data):
 
     return crc
 
-def crc16_ibm(data: bytes):
-    crc = 0xFFFF
-    for b in data:
-        crc ^= b
-        for _ in range(8):
-            if crc & 1:
-                crc = (crc >> 1) ^ 0xA001
-            else:
-                crc >>= 1
-    return bytes([crc & 0xFF, (crc >> 8) & 0xFF])
 
 def build_cmd(cmd: str) -> bytes:
     payload = bytearray(cmd.encode('utf-8'))

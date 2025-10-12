@@ -66,7 +66,8 @@ class HidInverterModeSensor(_Base):
         'L': 'grid',
         'B': 'battery',
         'F': 'fault',
-        'H': 'hybernate'
+        'H': 'hybernate',
+        '' : 'unknown'
     }
 
     MODE_OPTIONS = list(sorted(set(MODE_MAP.values())))

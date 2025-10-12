@@ -1,5 +1,7 @@
 FROM ghcr.io/home-assistant/devcontainer:supervisor
 
+# TODO: socat
+
 COPY requirements.txt ./
 COPY package_constraints.txt ./
 RUN pip install -r requirements.txt

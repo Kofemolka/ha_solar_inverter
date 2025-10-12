@@ -12,5 +12,5 @@ class Metric:
     uuid: str
     name: str
     dc: SensorDeviceClass
-    uom: str
-    sc: SensorStateClass
+    uom: str | None
+    sc: SensorStateClass | None

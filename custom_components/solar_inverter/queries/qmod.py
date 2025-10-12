@@ -14,7 +14,7 @@ class QMOD:
     @staticmethod
     def metrics() -> list[Metric]:
         return [
-            Metric(0, "mode", "Mode", SensorDeviceClass.ENUM, "", SensorStateClass.MEASUREMENT)
+            Metric(0, "mode", "Mode", SensorDeviceClass.ENUM, None, None)
         ]
     
     @staticmethod

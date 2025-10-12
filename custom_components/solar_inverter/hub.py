@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import asyncio
+
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+
 import logging
-from typing import Dict, Tuple, Optional
+from typing import Dict
 from .devices import fake, hidraw
 from .queries import QUERIES
 
@@ -9,7 +14,7 @@ from .queries import QUERIES
 _LOGGER = logging.getLogger(__name__)
     
 def _strip_frame(resp: bytes) -> str:
-    return resp[1:-3].decode()
+    return resp[1:-3].decode() # remove leading '(' and trailing CRC+'\r'
 
 
 class InverterHub:
@@ -23,10 +28,18 @@ class InverterHub:
             self._dev = hidraw.HidrawInverter(path)
         
         self._queries = queries
-        self._last = {}
+        self._unsub_stop = None
 
-    async def async_init(self):
-        await self._dev.open()
+    async def async_init(self):        
+        self._unsub_stop = self.hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_STOP,
+            lambda evt: self.hass.async_create_task(self.async_close())
+        )
+
+    async def async_close(self):
+        if self._unsub_stop:
+            self._unsub_stop()
+            self._unsub_stop = None
 
     async def async_poll_all(self) -> Dict[str, dict]:
         data: Dict[str, dict] = {}
@@ -37,6 +50,7 @@ class InverterHub:
                 data |= parsed
             except Exception as e:
                 _LOGGER.warning("Query %s failed: %s", query.cmd(), e)
+            await asyncio.sleep(0.1)
 
         return data
     
@@ -47,37 +61,4 @@ class InverterHub:
         
         parts = body.split()
         
-        return query.parse(parts)       
-        
-        if q == "qpiri":
-            # Rated info (subset)
-            def f(i):
-                try:
-                    return float(parts[i])
-                except Exception:
-                    return None
-                
-            return {
-                "ac_input_rating_voltage": f(0),
-                "ac_input_rating_freq": f(1),
-                "ac_output_rating_voltage": f(2),
-                "ac_output_rating_freq": f(3),
-                "ac_output_rating_current": f(4),
-                "ac_output_rating_apparent_power": f(5),
-                "ac_output_rating_active_power": f(6),
-                "battery_rating_voltage": f(7),
-                "battery_recharge_voltage": f(8),
-                "battery_redischarge_voltage": f(9),
-                "raw": body,
-                "ok": True,
-            }
-        
-        if q == "qpiws":
-            # Warning status bits: provide as raw string + echo list
-            return {
-                "warnings": parts,
-                "raw": body,
-                "ok": True,
-            }
-        
-        return {"raw": body, "ok": True}
+        return query.parse(parts)
