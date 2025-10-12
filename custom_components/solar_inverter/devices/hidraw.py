@@ -33,7 +33,7 @@ class HidrawInverter():
         os.close(fd)
 
     async def query(self, cmd: str) -> bytes:
-        fd = 0
+        fd = None
 
         try:
             fd = self._open(self._device_path)
@@ -44,12 +44,20 @@ class HidrawInverter():
 
             resp = await self._read(fd)
 
+            expected_crc = self._calc_crc(resp[0:-3])
+            real_crc = (resp[-3] << 8) + resp[-2]
+
+            if expected_crc != real_crc:
+                raise Exception("CRC missmatch")
+
             return resp
 
         except Exception as e:
-            _LOGGER.error(f"Error reading from the {self._device_path}: {e}")
+            _LOGGER.error(f"Error reading {cmd} from the {self._device_path}: {e}")
+            raise e
         finally:
-            self._close(fd)
+            if fd:
+                self._close(fd)
 
         return bytes()
     

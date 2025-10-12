@@ -71,7 +71,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--device", required=True)   # e.g. /dev/hidraw0
     ap.add_argument("--out", default="samples.json")
-    ap.add_argument("--cmds", default="QPIGS,QPIRI,QPIWS")
+    ap.add_argument("--cmds", default="QPIGS,QPIRI,QPIWS,QMOD")
     args = ap.parse_args()
 
     fd = os.open(args.device, os.O_RDWR | os.O_NONBLOCK)
@@ -93,6 +93,7 @@ def main():
         # Store both ascii-ish and hex
         samples.append({
             "cmd": name,
+            "tx": req.decode("ascii", errors="ignore"),
             "tx_hex": req.hex(),
             "rx_hex": resp.hex(),
             "rx_ascii": resp.decode("ascii", errors="ignore"),

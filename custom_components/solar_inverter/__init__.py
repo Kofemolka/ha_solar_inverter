@@ -76,10 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     devreg.async_get_or_create(
         config_entry_id=entry.entry_id,
         identifiers={(DOMAIN, device_id)},
-        manufacturer="n/a",
-        model="n/a",
-        name=device_id,
-        sw_version="n/a",
+        name=device_id
     )
 
     selected_queries = get_user_queries(user_queries)
@@ -104,6 +101,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
     return True
 
 
@@ -113,4 +111,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
         hub: InverterHub = data["hub"]
         if hub:
             await hub.async_close()
+
     return True
