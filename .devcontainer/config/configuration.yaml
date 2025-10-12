@@ -4,9 +4,10 @@ homeassistant:
   time_zone: Europe/Kyiv
 
 solar_inverter:
+  name: Master Power
   device: fake
   scan_interval: 5
-  queries: [QPIGS, QPIRI, QPIWS]
+  queries: [QPIGS, QPIRI, QPIWS, QMOD]
 
 logger:
   default: info

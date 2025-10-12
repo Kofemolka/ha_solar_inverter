@@ -10,7 +10,9 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfElectricCurrent,
     UnitOfFrequency,
-    UnitOfApparentPower
+    UnitOfApparentPower,
+    UnitOfTemperature,
+    PERCENTAGE
 )
 
 
@@ -22,7 +24,23 @@ class QPIGS:
     @staticmethod
     def metrics() -> list[Metric]:
         return [
-            Metric(0, "grid_voltage", "Grid Voltage", SensorDeviceClass.VOLTAGE, UnitOfElectricPotential.VOLT, SensorStateClass.MEASUREMENT)
+            Metric(0, "grid_voltage", "Grid Voltage", SensorDeviceClass.VOLTAGE, UnitOfElectricPotential.VOLT, SensorStateClass.MEASUREMENT),
+            Metric(1, "grid_freq", "Grid Frequency", SensorDeviceClass.FREQUENCY, UnitOfFrequency.HERTZ, SensorStateClass.MEASUREMENT),
+            Metric(2, "ac_output_voltage", "Output Voltage", SensorDeviceClass.VOLTAGE, UnitOfElectricPotential.VOLT, SensorStateClass.MEASUREMENT),
+            Metric(3, "ac_output_freq", "Output Frequency", SensorDeviceClass.FREQUENCY, UnitOfFrequency.HERTZ, SensorStateClass.MEASUREMENT),
+            Metric(4, "load_va", "Load VA", SensorDeviceClass.APPARENT_POWER, UnitOfApparentPower.VOLT_AMPERE, SensorStateClass.MEASUREMENT),
+            Metric(5, "load_watt", "Load W", SensorDeviceClass.POWER, UnitOfPower.WATT, SensorStateClass.MEASUREMENT),
+            Metric(6, "load_pcnt", "Load %", SensorDeviceClass.POWER_FACTOR, PERCENTAGE, SensorStateClass.MEASUREMENT),
+            # TODO: not sure
+            Metric(7, "pv_voltage", "PV Voltage", SensorDeviceClass.VOLTAGE, UnitOfElectricPotential.VOLT, SensorStateClass.MEASUREMENT), 
+            Metric(8, "battery_voltage", "Battery Voltage", SensorDeviceClass.VOLTAGE, UnitOfElectricPotential.VOLT, SensorStateClass.MEASUREMENT),
+            Metric(9, "battery_charge_current", "Battery Charge Current", SensorDeviceClass.CURRENT, UnitOfElectricCurrent.AMPERE, SensorStateClass.MEASUREMENT),
+            Metric(10, "battery_level", "Battery Level", SensorDeviceClass.BATTERY, PERCENTAGE, SensorStateClass.MEASUREMENT),
+            Metric(11, "temperature", "Inverter Temperature", SensorDeviceClass.TEMPERATURE, UnitOfTemperature.CELSIUS, SensorStateClass.MEASUREMENT),
+            Metric(12, "pv_input_current", "PV Input Current", SensorDeviceClass.CURRENT, UnitOfElectricCurrent.AMPERE, SensorStateClass.MEASUREMENT),
+            Metric(13, "pv_input_voltage", "PV Input Voltage", SensorDeviceClass.VOLTAGE, UnitOfElectricPotential.VOLT,  SensorStateClass.MEASUREMENT),
+            Metric(15, "battery_discharge_current", "Battery Discharge Current", SensorDeviceClass.CURRENT, UnitOfElectricCurrent.AMPERE, SensorStateClass.MEASUREMENT),
+            Metric(19, "pv_input_watt", "PV Input Power", SensorDeviceClass.POWER, UnitOfPower.WATT, SensorStateClass.MEASUREMENT),
         ]
     
     @staticmethod
@@ -39,22 +57,3 @@ class QPIGS:
             measurements[metric.uuid] = f(metric.ndx)
 
         return measurements
-    
-        return {
-            "grid_voltage": f(0),
-            "grid_freq": f(1),
-            "ac_output_voltage": f(2),
-            "ac_output_freq": f(3),
-            "load_va": f(4),
-            "load_watt": f(5),
-            "load_pcnt": f(6),
-            "pv_voltage": f(7),
-            "battery_voltage": f(8),
-            "battery_charge_current": f(9),
-            'battery_level': f(10),
-            'temperature': f(11),
-            'pv_input_current': f(12),
-            'pv_input_voltage': f(13),
-            'battery_discharge_current': f(15),
-            'pv_input_watt': f(19)
-        }

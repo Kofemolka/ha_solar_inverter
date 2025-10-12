@@ -1,7 +1,9 @@
 from .qpigs import QPIGS
+from .qmod import QMOD
 
 QUERIES = {
-    "QPIGS": QPIGS()
+    QPIGS.cmd(): QPIGS(),
+    QMOD.cmd(): QMOD()
 }
 
 

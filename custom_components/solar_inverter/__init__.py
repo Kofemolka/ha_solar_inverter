@@ -4,8 +4,11 @@ from datetime import timedelta
 
 
 import voluptuous as vol
+from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers import config_validation as cv
@@ -46,15 +49,38 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    if DOMAIN not in config:
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Import YAML into a ConfigEntry (one entry only)."""
+    conf = config.get(DOMAIN)
+    if not conf:
         return True
+    # Create/update config entry from YAML
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_IMPORT},
+            data=conf,
+        )
+    )
+    return True
 
-    conf = config[DOMAIN]
-    device = conf[CONF_DEVICE]
-    scan_seconds = conf[CONF_SCAN_INTERVAL]
-    user_queries = conf[CONF_QUERIES]
-    name = conf[CONF_NAME]
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    device: str = entry.data[CONF_DEVICE]
+    scan_seconds = entry.data[CONF_SCAN_INTERVAL]
+    user_queries = entry.data[CONF_QUERIES]
+    name = entry.data[CONF_NAME]
+
+    device_id = f"{name}:{device}"
+    devreg = dr.async_get(hass)
+    devreg.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, device_id)},
+        manufacturer="n/a",
+        model="n/a",
+        name=device_id,
+        sw_version="n/a",
+    )
 
     selected_queries = get_user_queries(user_queries)
   
@@ -77,7 +103,5 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         "queries": selected_queries,
     }
 
-    for platform in PLATFORMS:
-        hass.async_create_task(async_load_platform(hass, platform, DOMAIN, {}, config))
-
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
