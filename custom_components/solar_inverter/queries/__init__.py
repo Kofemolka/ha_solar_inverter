@@ -1,10 +1,12 @@
 from .qpigs import QPIGS
 from .qmod import QMOD
+from .qpiri import QPIRI
 
 
 QUERIES = {
     QPIGS.cmd(): QPIGS(),
-    QMOD.cmd(): QMOD()
+    QMOD.cmd(): QMOD(),
+    QPIRI.cmd(): QPIRI(),
 }
 
 

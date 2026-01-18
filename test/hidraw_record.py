@@ -79,33 +79,32 @@ def main():
     flags = fcntl.fcntl(fd, fcntl.F_GETFD)
     fcntl.fcntl(fd, fcntl.F_SETFD, flags | fcntl.FD_CLOEXEC)
 
-    samples = []
-    for name in [c.strip() for c in args.cmds.split(",") if c.strip()]:
-        req = build_cmd(name)
+    while True:
+        # op_mode = input("mode:")
+        # if not op_mode:
+        #     break
+
+        # int_mode = f"{op_mode:02}"
+        # print(int_mode)
+
+        # pop_cmd = f"POP{int_mode}"
+        cmd = input("cmd:")
+
+        req = build_cmd(cmd)
         os.write(fd, req)
         t0 = time.time()
         try:
             resp = read_until_cr(fd, timeout=3.0)
         except Exception as e:
-            print(f"{name}: read failed: {e}", file=sys.stderr)
+            print(f"read failed: {e}", file=sys.stderr)
             continue
-        t1 = time.time()
-        # Store both ascii-ish and hex
-        samples.append({
-            "cmd": name,
-            "tx": req.decode("ascii", errors="ignore"),
-            "tx_hex": req.hex(),
-            "rx_hex": resp.hex(),
-            "rx_ascii": resp.decode("ascii", errors="ignore"),
-            "t_start": t0,
-            "t_end": t1,
-        })
+
+        print(resp.decode("ascii", errors="ignore"))
+   
         time.sleep(0.4)
 
     os.close(fd)
-    with open(args.out, "w") as f:
-        json.dump(samples, f, indent=2)
-    print(f"Saved {len(samples)} samples → {args.out}")
+   
 
 if __name__ == "__main__":
     main()
