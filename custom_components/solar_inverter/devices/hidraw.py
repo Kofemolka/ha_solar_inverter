@@ -58,9 +58,19 @@ class HidrawInverter():
         finally:
             if fd:
                 self._close(fd)
-
-        return bytes()
     
+    async def set_output_source_priority(self, priority : int) -> bool:
+        cmd = f"POP{priority:02d}"
+        
+        resp = await self.query(cmd)
+
+        try:
+            text = resp.decode(errors="ignore")
+        except Exception:
+            return False
+
+        return text.startswith("(ACK")
+
     @staticmethod
     async def _read(fd, overall=2.0, interbyte=0.5, chunk=128, max_bytes=4096) -> bytes:
         rxbuf = bytearray()

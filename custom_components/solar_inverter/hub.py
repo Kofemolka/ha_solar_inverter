@@ -8,7 +8,6 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 import logging
 from typing import Dict
 from .devices import fake, hidraw
-from .queries import QUERIES
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,6 +53,9 @@ class InverterHub:
 
         return data
     
+    async def set_output_source_priority(self, priority : int) -> bool:
+        return await self._dev.set_output_source_priority(priority)
+
     def _parse(self, query, raw: bytes) -> dict:
         body = _strip_frame(raw)
         if body == "NAK":

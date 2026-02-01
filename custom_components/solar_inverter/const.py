@@ -1,5 +1,5 @@
 DOMAIN = "solar_inverter"
-PLATFORMS = ["sensor"]
+PLATFORMS = ["sensor", "select"]
 CONF_DEVICE = "device"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_QUERIES = "queries"
